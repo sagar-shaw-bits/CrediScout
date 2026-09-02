@@ -1,0 +1,17 @@
+# Build output
+/bin/
+*.exe
+*.test
+*.out
+
+# Crawled corpus / generated data
+/data/
+
+# Go workspace
+go.work
+go.work.sum
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
