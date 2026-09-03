@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrediScout — CrediScout Credit Card Assistant</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1>CrediScout</h1>
+    <p class="subtitle">Ask about CrediScout credit cards — answers grounded in crawled pages.</p>
+  </header>
+
+  <main>
+    <div id="chat" class="chat" aria-live="polite"></div>
+
+    <form id="form" class="composer">
+      <input
+        id="q"
+        type="text"
+        autocomplete="off"
+        placeholder="e.g. Which CrediScout card is best for fuel spends?"
+        aria-label="Your question"
+      />
+      <button id="send" type="submit">Ask</button>
+    </form>
+
+    <div class="samples">
+      <span>Try:</span>
+      <button class="chip" type="button">What are the fees for the Millennia credit card?</button>
+      <button class="chip" type="button">What are the fees for the Regalia card?</button>
+      <button class="chip" type="button">How do I check my credit card eligibility?</button>
+    </div>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

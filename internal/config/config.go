@@ -33,7 +33,7 @@ func DefaultCrawlerConfig() CrawlerConfig {
 			"/hindi/", "/kannada/", "/malayalam/", "/tamil/", "/telugu/",
 			"/marathi/", "/gujarati/", "/bengali/", "/punjabi/",
 		},
-		MaxPages:        250,
+		MaxPages:        200,
 		MaxDepth:        3,
 		Concurrency:     8,
 		RequestTimeout:  15 * time.Second,

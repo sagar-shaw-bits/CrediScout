@@ -1,0 +1,23 @@
+# Keep the build context small and reproducible.
+.git
+.gitignore
+*.md
+LICENSE
+
+# Generated corpus / vector index (mounted at runtime, never baked in).
+data/
+
+# Build output
+bin/
+*.exe
+*.test
+*.out
+
+# Local server logs
+server.out
+server.err
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store

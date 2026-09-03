@@ -141,7 +141,7 @@ func (c *Crawler) Run(ctx context.Context) (Stats, error) {
 
 		content := extractText(e)
 		if len(content) < c.cfg.MinContentLen {
-			return // skip near-empty pages
+			return
 		}
 
 		hash := contentHash(content)

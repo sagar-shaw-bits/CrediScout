@@ -14,9 +14,9 @@ func ParseCrawlerFlags() CrawlerConfig {
 		keywords  string
 		blocklist string
 	)
-	flag.StringVar(&seeds, "seeds", "https://en.wikipedia.org/wiki/Credit_card",
+	flag.StringVar(&seeds, "seeds", "https://www.hdfc.bank.in/credit-cards",
 		"comma-separated seed URLs")
-	flag.StringVar(&domains, "domains", "en.wikipedia.org",
+	flag.StringVar(&domains, "domains", "www.hdfc.bank.in,hdfc.bank.in,www.hdfcbank.com,hdfcbank.com",
 		"comma-separated allowed domains (defaults to seed hosts)")
 	flag.StringVar(&keywords, "keywords", "credit,card,payment,debit,bank,loan",
 		"comma-separated URL keywords to stay on-topic (empty to allow all)")
