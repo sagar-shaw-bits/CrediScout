@@ -22,7 +22,7 @@ func main() {
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
 	if err := cfg.Validate(); err != nil {
-		log.Error("invalid config", "err", err)
+		log.Error("invalid RAG config", "err", err)
 		os.Exit(1)
 	}
 
@@ -30,7 +30,7 @@ func main() {
 	defer stop()
 
 	if err := run(ctx, cfg, log); err != nil {
-		log.Error("ingest failed", "err", err)
+		log.Error("RAG ingest failed", "err", err)
 		os.Exit(1)
 	}
 }

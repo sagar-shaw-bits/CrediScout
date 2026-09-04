@@ -23,17 +23,17 @@ func main() {
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
 	if err := cfg.Validate(); err != nil {
-		log.Error("invalid config", "err", err)
+		log.Error("invalid Server config", "err", err)
 		os.Exit(1)
 	}
 
 	log.Info("loading index", "file", cfg.IndexFile)
 	store, err := rag.LoadVectorStore(cfg.IndexFile)
 	if err != nil {
-		log.Error("load index", "err", err)
+		log.Error("Error while loading index", "err", err)
 		os.Exit(1)
 	}
-	log.Info("index loaded", "chunks", store.Len())
+	log.Info("index loaded successfully", "chunks", store.Len())
 
 	embedder := rag.NewOllamaEmbedder(cfg.OllamaURL, cfg.EmbedModel, cfg.RequestTimeout)
 	retriever := rag.NewRetriever(embedder, store, cfg.TopK, log)
@@ -47,7 +47,7 @@ func main() {
 	defer stop()
 
 	if err := server.StartHTTPServer(ctx, cfg.Addr, web.Assets, []endpoint.EndpointBinder{askBinder}, log); err != nil {
-		log.Error("server error", "err", err)
+		log.Error("Error starting server", "err", err)
 		os.Exit(1)
 	}
 }

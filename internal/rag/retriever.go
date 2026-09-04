@@ -47,7 +47,7 @@ func NewRetriever(embedder Embedder, store *VectorStore, topK int, log *slog.Log
 
 func (h *Retriever) Retrieve(ctx context.Context, query string, k int) ([]Result, error) {
 	if query == "" {
-		return nil, fmt.Errorf("retrieve: empty query")
+		return nil, fmt.Errorf("empty query string provided to retriever")
 	}
 	if k <= 0 {
 		k = h.topK
@@ -71,6 +71,7 @@ func (h *Retriever) Retrieve(ctx context.Context, query string, k int) ([]Result
 	}
 
 	fused := fuseRRF([][]Result{dense, lexical}, rrfK)
+	fusedTotal := len(fused)
 	if len(fused) > k {
 		fused = fused[:k]
 	}
@@ -85,10 +86,14 @@ func (h *Retriever) Retrieve(ctx context.Context, query string, k int) ([]Result
 	if len(fused) > 0 {
 		topScore = fused[0].Score
 	}
-	h.log.Info("retrieval",
-		"dense", len(dense),
-		"lexical", len(lexical),
-		"fused", len(fused),
+	h.log.Info("retrieval completed",
+		"query", query,
+		"k", k,
+		"candidate_k", h.candidateK,
+		"dense_hits", len(dense),
+		"lexical_hits", len(lexical),
+		"dense_enabled", qvec != nil,
+		"fused_total", fusedTotal,
 		"returned", len(fused),
 		"top_score", topScore,
 	)

@@ -1,6 +1,7 @@
 package ask
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -31,6 +32,10 @@ func (h *AskEndpointHandler) AskEndpointHandler() gin.HandlerFunc {
 
 		resp, err := h.service.Ask(c.Request.Context(), req)
 		if err != nil {
+			if errors.Is(err, asksrv.ErrEmptyQuestion) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 			h.log.Error("ask failed", "err", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to answer question"})
 			return

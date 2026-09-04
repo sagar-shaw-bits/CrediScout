@@ -5,6 +5,9 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/sagar-shaw-bits/CrediScout/internal/domain"
 )
 
@@ -28,17 +31,11 @@ func TestEmbedChunks_BatchesAndPreservesOrder(t *testing.T) {
 	}
 
 	got, err := EmbedChunks(context.Background(), emb, chunks, 2)
-	if err != nil {
-		t.Fatalf("EmbedChunks: %v", err)
-	}
-	if seenBatches != 3 { // 2 + 2 + 1
-		t.Fatalf("expected 3 batches, got %d", seenBatches)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, 3, seenBatches, "expected 3 batches (2+2+1)")
 	for i, ch := range got {
 		want := float32(len(chunks[i].Text))
-		if len(ch.Embedding) != 1 || ch.Embedding[0] != want {
-			t.Errorf("chunk %d embedding = %v, want [%v]", i, ch.Embedding, want)
-		}
+		assert.Equal(t, []float32{want}, ch.Embedding, "chunk %d embedding", i)
 	}
 }
 
@@ -47,9 +44,7 @@ func TestEmbedChunks_PropagatesError(t *testing.T) {
 		return nil, errors.New("boom")
 	})
 	_, err := EmbedChunks(context.Background(), emb, []domain.Chunk{{Text: "x"}}, 1)
-	if err == nil {
-		t.Fatal("expected error to propagate")
-	}
+	assert.Error(t, err)
 }
 
 // embedFunc adapts a function to the Embedder interface for testing.

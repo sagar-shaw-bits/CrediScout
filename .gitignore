@@ -4,6 +4,9 @@
 *.test
 *.out
 
+# Local k6 binary (downloaded, not committed)
+/scripts/bin/
+
 # Crawled corpus / generated data
 /data/
 

@@ -11,6 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/sagar-shaw-bits/CrediScout/internal/config"
 	"github.com/sagar-shaw-bits/CrediScout/internal/domain"
 )
@@ -86,25 +89,15 @@ func TestCrawl_VisitsSameDomainOnly(t *testing.T) {
 
 	store := newMemStore()
 	c, err := New(testConfig(srv.URL), store, slog.New(slog.NewTextHandler(nopWriter{}, nil)))
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
+	require.NoError(t, err)
 
 	stats, err := c.Run(context.Background())
-	if err != nil {
-		t.Fatalf("Run: %v", err)
-	}
+	require.NoError(t, err)
 
-	if store.len() != 4 {
-		t.Fatalf("expected 4 stored pages, got %d", store.len())
-	}
-	if stats.Stored != 4 {
-		t.Fatalf("expected stats.Stored=4, got %d", stats.Stored)
-	}
+	require.Equal(t, 4, store.len(), "expected 4 stored pages")
+	assert.Equal(t, 4, stats.Stored)
 	for u := range store.docs {
-		if u[:len(srv.URL)] != srv.URL {
-			t.Errorf("crawled off-domain URL: %s", u)
-		}
+		assert.True(t, strings.HasPrefix(u, srv.URL), "crawled off-domain URL: %s", u)
 	}
 }
 
@@ -117,17 +110,11 @@ func TestCrawl_RespectsMaxPages(t *testing.T) {
 
 	store := newMemStore()
 	c, err := New(cfg, store, slog.New(slog.NewTextHandler(nopWriter{}, nil)))
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
+	require.NoError(t, err)
 
 	stats, err := c.Run(context.Background())
-	if err != nil {
-		t.Fatalf("Run: %v", err)
-	}
-	if stats.Stored != 2 {
-		t.Fatalf("expected exactly 2 stored pages, got %d", stats.Stored)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, 2, stats.Stored, "expected exactly 2 stored pages")
 }
 
 func TestCrawl_RespectsMaxDepth(t *testing.T) {
@@ -139,16 +126,11 @@ func TestCrawl_RespectsMaxDepth(t *testing.T) {
 
 	store := newMemStore()
 	c, err := New(cfg, store, slog.New(slog.NewTextHandler(nopWriter{}, nil)))
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
+	require.NoError(t, err)
 
-	if _, err := c.Run(context.Background()); err != nil {
-		t.Fatalf("Run: %v", err)
-	}
-	if store.len() != 1 {
-		t.Fatalf("expected only the seed page at depth 0, got %d", store.len())
-	}
+	_, err = c.Run(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, 1, store.len(), "expected only the seed page at depth 0")
 }
 
 func TestCrawl_OnlyFollowsKeywordURLs(t *testing.T) {
@@ -177,31 +159,20 @@ func TestCrawl_OnlyFollowsKeywordURLs(t *testing.T) {
 
 	store := newMemStore()
 	c, err := New(cfg, store, slog.New(slog.NewTextHandler(nopWriter{}, nil)))
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-	if _, err := c.Run(context.Background()); err != nil {
-		t.Fatalf("Run: %v", err)
-	}
-	if store.len() != 2 {
-		t.Fatalf("expected 2 cards pages, got %d", store.len())
-	}
+	require.NoError(t, err)
+	_, err = c.Run(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, 2, store.len(), "expected 2 cards pages")
 	for u := range store.docs {
-		if strings.Contains(u, "/loans/") {
-			t.Errorf("crawled off-topic loan URL: %s", u)
-		}
+		assert.NotContains(t, u, "/loans/", "crawled off-topic loan URL: %s", u)
 	}
 }
 
 func TestConfigValidate(t *testing.T) {
 	cfg := config.DefaultCrawlerConfig()
-	if err := cfg.Validate(); err == nil {
-		t.Fatal("expected error for missing seeds")
-	}
+	assert.Error(t, cfg.Validate(), "expected error for missing seeds")
 	cfg.Seeds = []string{"https://example.com"}
-	if err := cfg.Validate(); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	assert.NoError(t, cfg.Validate())
 }
 
 func TestCrawl_DedupsIdenticalContent(t *testing.T) {
@@ -222,15 +193,10 @@ func TestCrawl_DedupsIdenticalContent(t *testing.T) {
 
 	store := newMemStore()
 	c, err := New(testConfig(srv.URL), store, slog.New(slog.NewTextHandler(nopWriter{}, nil)))
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-	if _, err := c.Run(context.Background()); err != nil {
-		t.Fatalf("Run: %v", err)
-	}
-	if store.len() != 1 {
-		t.Fatalf("expected 1 stored page after content dedup, got %d", store.len())
-	}
+	require.NoError(t, err)
+	_, err = c.Run(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, 1, store.len(), "expected 1 stored page after content dedup")
 }
 
 func TestCrawl_RetriesOn5xx(t *testing.T) {
@@ -255,16 +221,9 @@ func TestCrawl_RetriesOn5xx(t *testing.T) {
 
 	store := newMemStore()
 	c, err := New(cfg, store, slog.New(slog.NewTextHandler(nopWriter{}, nil)))
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-	if _, err := c.Run(context.Background()); err != nil {
-		t.Fatalf("Run: %v", err)
-	}
-	if store.len() != 1 {
-		t.Fatalf("expected 1 stored page after retrying 5xx, got %d", store.len())
-	}
-	if got := atomic.LoadInt32(&hits); got != 3 {
-		t.Fatalf("expected 3 attempts (2 failures + 1 success), got %d", got)
-	}
+	require.NoError(t, err)
+	_, err = c.Run(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, 1, store.len(), "expected 1 stored page after retrying 5xx")
+	assert.Equal(t, int32(3), atomic.LoadInt32(&hits), "expected 3 attempts (2 failures + 1 success)")
 }

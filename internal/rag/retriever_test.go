@@ -4,6 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/sagar-shaw-bits/CrediScout/internal/domain"
 )
 
@@ -28,22 +31,15 @@ func TestRetriever_ReturnsRankedChunks(t *testing.T) {
 	r := NewRetriever(staticEmbedder{vec: []float32{1, 0, 0}}, store, 5, nil)
 
 	hits, err := r.Retrieve(context.Background(), "anything", 1)
-	if err != nil {
-		t.Fatalf("Retrieve: %v", err)
-	}
-	if len(hits) != 1 {
-		t.Fatalf("expected 1 hit, got %d", len(hits))
-	}
-	if hits[0].Chunk.ID != "match" {
-		t.Errorf("expected 'match' first, got %q", hits[0].Chunk.ID)
-	}
+	require.NoError(t, err)
+	require.Len(t, hits, 1)
+	assert.Equal(t, "match", hits[0].Chunk.ID)
 }
 
 func TestRetriever_EmptyQuery(t *testing.T) {
 	r := NewRetriever(staticEmbedder{vec: []float32{1}}, NewVectorStore(), 5, nil)
-	if _, err := r.Retrieve(context.Background(), "", 1); err == nil {
-		t.Fatal("expected error for empty query")
-	}
+	_, err := r.Retrieve(context.Background(), "", 1)
+	assert.Error(t, err)
 }
 
 func TestRetriever_DefaultsToTopKWhenKNonPositive(t *testing.T) {
@@ -54,10 +50,6 @@ func TestRetriever_DefaultsToTopKWhenKNonPositive(t *testing.T) {
 	r := NewRetriever(staticEmbedder{vec: []float32{1, 0}}, store, 3, nil)
 
 	hits, err := r.Retrieve(context.Background(), "q", 0) // k<=0 => default 3
-	if err != nil {
-		t.Fatalf("Retrieve: %v", err)
-	}
-	if len(hits) != 3 {
-		t.Fatalf("expected 3 hits (default topK), got %d", len(hits))
-	}
+	require.NoError(t, err)
+	assert.Len(t, hits, 3, "expected default topK results")
 }

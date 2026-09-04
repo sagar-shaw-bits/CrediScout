@@ -32,25 +32,25 @@ func DefaultRAGConfig() RAGConfig {
 
 func (c RAGConfig) Validate() error {
 	if c.InputFile == "" {
-		return fmt.Errorf("config: input file is required")
+		return fmt.Errorf("Input file is required")
 	}
 	if c.IndexFile == "" {
-		return fmt.Errorf("config: index file is required")
+		return fmt.Errorf("Index file is required")
 	}
 	if c.OllamaURL == "" {
-		return fmt.Errorf("config: ollama URL is required")
+		return fmt.Errorf("Ollama URL is required")
 	}
 	if c.EmbedModel == "" {
-		return fmt.Errorf("config: embed model is required")
+		return fmt.Errorf("Embed model is required")
 	}
 	if c.ChunkSize <= 0 {
-		return fmt.Errorf("config: chunk size must be positive, got %d", c.ChunkSize)
+		return fmt.Errorf("Chunk size must be positive, got %d", c.ChunkSize)
 	}
 	if c.ChunkOverlap < 0 || c.ChunkOverlap >= c.ChunkSize {
-		return fmt.Errorf("config: chunk overlap must be in [0, chunkSize), got %d", c.ChunkOverlap)
+		return fmt.Errorf("Chunk overlap must be in [0, chunkSize), got %d", c.ChunkOverlap)
 	}
 	if c.BatchSize <= 0 {
-		return fmt.Errorf("config: batch size must be positive, got %d", c.BatchSize)
+		return fmt.Errorf("Batch size must be positive, got %d", c.BatchSize)
 	}
 	return nil
 }

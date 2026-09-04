@@ -47,22 +47,22 @@ func DefaultCrawlerConfig() CrawlerConfig {
 
 func (c CrawlerConfig) Validate() error {
 	if len(c.Seeds) == 0 {
-		return fmt.Errorf("config: at least one seed URL is required")
+		return fmt.Errorf("At least one seed URL is required")
 	}
 	if c.MaxPages <= 0 {
-		return fmt.Errorf("config: max pages must be positive, got %d", c.MaxPages)
+		return fmt.Errorf("Max pages must be positive, got %d", c.MaxPages)
 	}
 	if c.MaxDepth < 0 {
-		return fmt.Errorf("config: max depth cannot be negative, got %d", c.MaxDepth)
+		return fmt.Errorf("Max depth cannot be negative, got %d", c.MaxDepth)
 	}
 	if c.Concurrency <= 0 {
-		return fmt.Errorf("config: concurrency must be positive, got %d", c.Concurrency)
+		return fmt.Errorf("Concurrency must be positive, got %d", c.Concurrency)
 	}
 	if c.MaxRetries < 0 {
-		return fmt.Errorf("config: max retries cannot be negative, got %d", c.MaxRetries)
+		return fmt.Errorf("Max retries cannot be negative, got %d", c.MaxRetries)
 	}
 	if c.OutputFile == "" {
-		return fmt.Errorf("config: output file is required")
+		return fmt.Errorf("Output file is required")
 	}
 	return nil
 }

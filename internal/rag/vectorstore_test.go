@@ -6,6 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/sagar-shaw-bits/CrediScout/internal/domain"
 )
 
@@ -36,18 +39,10 @@ func TestVectorStore_SearchRanksByCosine(t *testing.T) {
 	)
 
 	got := store.Search([]float32{1, 0, 0}, 2)
-	if len(got) != 2 {
-		t.Fatalf("expected 2 results, got %d", len(got))
-	}
-	if got[0].Chunk.ID != "a" {
-		t.Errorf("expected 'a' first, got %q", got[0].Chunk.ID)
-	}
-	if got[1].Chunk.ID != "c" {
-		t.Errorf("expected 'c' second, got %q", got[1].Chunk.ID)
-	}
-	if got[0].Score <= got[1].Score {
-		t.Errorf("scores not descending: %v then %v", got[0].Score, got[1].Score)
-	}
+	require.Len(t, got, 2)
+	assert.Equal(t, "a", got[0].Chunk.ID, "expected 'a' first")
+	assert.Equal(t, "c", got[1].Chunk.ID, "expected 'c' second")
+	assert.Greater(t, got[0].Score, got[1].Score, "scores must be descending")
 }
 
 func TestVectorStore_SearchSkipsDimensionMismatch(t *testing.T) {
@@ -57,9 +52,8 @@ func TestVectorStore_SearchSkipsDimensionMismatch(t *testing.T) {
 		domain.Chunk{ID: "bad", Embedding: []float32{1, 0, 0}}, // wrong dim
 	)
 	got := store.Search([]float32{1, 0}, 5)
-	if len(got) != 1 || got[0].Chunk.ID != "ok" {
-		t.Fatalf("expected only 'ok', got %+v", got)
-	}
+	require.Len(t, got, 1)
+	assert.Equal(t, "ok", got[0].Chunk.ID)
 }
 
 func TestVectorStore_SaveAndLoadRoundTrip(t *testing.T) {
@@ -70,24 +64,17 @@ func TestVectorStore_SaveAndLoadRoundTrip(t *testing.T) {
 	)
 
 	path := filepath.Join(t.TempDir(), "index.jsonl")
-	if err := store.Save(path); err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-	if _, err := os.Stat(path); err != nil {
-		t.Fatalf("index file missing: %v", err)
-	}
+	require.NoError(t, store.Save(path))
+	_, err := os.Stat(path)
+	require.NoError(t, err, "index file must exist")
 
 	loaded, err := LoadVectorStore(path)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-	if loaded.Len() != 2 {
-		t.Fatalf("expected 2 chunks, got %d", loaded.Len())
-	}
+	require.NoError(t, err)
+	require.Equal(t, 2, loaded.Len())
 	got := loaded.Search([]float32{4, 5, 6}, 1)
-	if len(got) != 1 || got[0].Chunk.ID != "b" || got[0].Chunk.Text != "world" {
-		t.Fatalf("round-trip lost data: %+v", got)
-	}
+	require.Len(t, got, 1)
+	assert.Equal(t, "b", got[0].Chunk.ID)
+	assert.Equal(t, "world", got[0].Chunk.Text)
 }
 
 func TestFakeEmbedder_UsableAsEmbedder(t *testing.T) {
@@ -95,10 +82,6 @@ func TestFakeEmbedder_UsableAsEmbedder(t *testing.T) {
 	// how OllamaEmbedder is swapped out in tests.
 	var e Embedder = fakeEmbedder{vectors: map[string][]float32{"x": {1, 0}}}
 	vecs, err := e.Embed(context.Background(), []string{"x", "unknown"})
-	if err != nil {
-		t.Fatalf("Embed: %v", err)
-	}
-	if len(vecs) != 2 {
-		t.Fatalf("expected 2 vectors, got %d", len(vecs))
-	}
+	require.NoError(t, err)
+	assert.Len(t, vecs, 2)
 }

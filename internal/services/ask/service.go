@@ -2,12 +2,15 @@ package ask
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/sagar-shaw-bits/CrediScout/internal/llm"
 	"github.com/sagar-shaw-bits/CrediScout/internal/rag"
 )
+
+var ErrEmptyQuestion = errors.New("ask: question is required")
 
 const systemPrompt = `You are CrediScout, an assistant that answers questions about HDFC Bank credit cards.
 Answer ONLY using the provided context. If the context does not contain the answer, say you don't have that information.
@@ -36,7 +39,7 @@ func NewService(retriever Retriever, model llm.LLM, defaultTopK int) Service {
 func (s *service) Ask(ctx context.Context, req AskRequest) (AskResponse, error) {
 	question := strings.TrimSpace(req.Question)
 	if question == "" {
-		return AskResponse{}, fmt.Errorf("ask: question is required")
+		return AskResponse{}, ErrEmptyQuestion
 	}
 
 	k := req.TopK
