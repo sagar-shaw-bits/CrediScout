@@ -25,7 +25,7 @@ func TestRetriever_ReturnsRankedChunks(t *testing.T) {
 		domain.Chunk{ID: "match", URL: "u1", Text: "match", Embedding: []float32{1, 0, 0}},
 		domain.Chunk{ID: "off", URL: "u2", Text: "off", Embedding: []float32{0, 1, 0}},
 	)
-	r := NewRetriever(staticEmbedder{vec: []float32{1, 0, 0}}, store, 5)
+	r := NewRetriever(staticEmbedder{vec: []float32{1, 0, 0}}, store, 5, nil)
 
 	hits, err := r.Retrieve(context.Background(), "anything", 1)
 	if err != nil {
@@ -40,7 +40,7 @@ func TestRetriever_ReturnsRankedChunks(t *testing.T) {
 }
 
 func TestRetriever_EmptyQuery(t *testing.T) {
-	r := NewRetriever(staticEmbedder{vec: []float32{1}}, NewVectorStore(), 5)
+	r := NewRetriever(staticEmbedder{vec: []float32{1}}, NewVectorStore(), 5, nil)
 	if _, err := r.Retrieve(context.Background(), "", 1); err == nil {
 		t.Fatal("expected error for empty query")
 	}
@@ -51,7 +51,7 @@ func TestRetriever_DefaultsToTopKWhenKNonPositive(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		store.Add(domain.Chunk{ID: string(rune('a' + i)), Embedding: []float32{1, 0}})
 	}
-	r := NewRetriever(staticEmbedder{vec: []float32{1, 0}}, store, 3)
+	r := NewRetriever(staticEmbedder{vec: []float32{1, 0}}, store, 3, nil)
 
 	hits, err := r.Retrieve(context.Background(), "q", 0) // k<=0 => default 3
 	if err != nil {

@@ -1,0 +1,13 @@
+.git
+.gitignore
+*.md
+LICENSE
+bin/
+*.exe
+*.test
+*.out
+server.out
+server.err
+.idea/
+.vscode/
+.DS_Store

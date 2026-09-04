@@ -158,14 +158,10 @@ func (c *Crawler) Run(ctx context.Context) (Stats, error) {
 
 		rawURL := e.Request.URL.String()
 		doc := domain.Document{
-			ID:          idForURL(rawURL),
-			URL:         rawURL,
-			Title:       strings.TrimSpace(e.ChildText("title")),
-			Text:        content,
-			ContentHash: hash,
-			StatusCode:  e.Response.StatusCode,
-			Depth:       e.Request.Depth - 1,
-			FetchedAt:   time.Now().UTC(),
+			ID:    idForURL(rawURL),
+			URL:   rawURL,
+			Title: strings.TrimSpace(e.ChildText("title")),
+			Text:  content,
 		}
 
 		if err := c.store.Save(ctx, doc); err != nil {
@@ -175,7 +171,7 @@ func (c *Crawler) Run(ctx context.Context) (Stats, error) {
 			return
 		}
 
-		c.log.Info("stored", "url", rawURL, "depth", doc.Depth, "title", doc.Title)
+		c.log.Info("stored", "url", rawURL, "depth", e.Request.Depth-1, "title", doc.Title)
 
 		if atomic.LoadInt64(&c.stored) >= int64(c.cfg.MaxPages) {
 			c.stop()

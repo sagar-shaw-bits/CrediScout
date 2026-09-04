@@ -39,6 +39,14 @@ func (s *VectorStore) Len() int {
 	return len(s.chunks)
 }
 
+func (s *VectorStore) snapshotChunks() []domain.Chunk {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]domain.Chunk, len(s.chunks))
+	copy(out, s.chunks)
+	return out
+}
+
 func (s *VectorStore) Search(query []float32, k int) []Result {
 	if len(query) == 0 || k <= 0 {
 		return nil

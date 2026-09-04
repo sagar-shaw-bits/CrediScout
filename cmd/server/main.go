@@ -36,7 +36,7 @@ func main() {
 	log.Info("index loaded", "chunks", store.Len())
 
 	embedder := rag.NewOllamaEmbedder(cfg.OllamaURL, cfg.EmbedModel, cfg.RequestTimeout)
-	retriever := rag.NewRetriever(embedder, store, cfg.TopK)
+	retriever := rag.NewRetriever(embedder, store, cfg.TopK, log)
 	model := llm.NewOllamaLLM(cfg.OllamaURL, cfg.ChatModel, cfg.RequestTimeout)
 
 	askService := asksrv.NewService(retriever, model, cfg.TopK)
