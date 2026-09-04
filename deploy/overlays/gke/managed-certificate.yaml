@@ -1,0 +1,15 @@
+# Optional Google-managed TLS certificate.
+#
+# Requires a real domain whose DNS A record points at the Ingress static IP.
+# 1. Reserve the IP and enable it in ingress.yaml (global-static-ip-name).
+# 2. Point your domain's A record at that IP.
+# 3. Set the domain below, add this file to kustomization.yaml `resources`,
+#    and uncomment the managed-certificates annotation in ingress.yaml.
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: crediscout-cert
+  namespace: crediscout
+spec:
+  domains:
+    - crediscout.example.com

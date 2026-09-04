@@ -1,0 +1,21 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: crediscout-backendconfig
+  namespace: crediscout
+  labels:
+    app.kubernetes.io/name: crediscout
+spec:
+  # Drive the GCLB health check off the app's real liveness endpoint instead of
+  # the default "/". A pod is only sent traffic once /healthz returns 200.
+  healthCheck:
+    checkIntervalSec: 10
+    timeoutSec: 5
+    healthyThreshold: 1
+    unhealthyThreshold: 3
+    type: HTTP
+    requestPath: /healthz
+    port: 8080
+  # The index load can take a few seconds; give new backends time to settle.
+  connectionDraining:
+    drainingTimeoutSec: 30

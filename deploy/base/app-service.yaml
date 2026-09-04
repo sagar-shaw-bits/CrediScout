@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: crediscout
+  namespace: crediscout
+  labels:
+    app.kubernetes.io/name: crediscout
+    app.kubernetes.io/component: server
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: crediscout
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

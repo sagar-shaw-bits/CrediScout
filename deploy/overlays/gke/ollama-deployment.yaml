@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: crediscout
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: llm
+spec:
+  # Single replica: Ollama is stateful (models on a RWO volume) and heavy.
+  # Scale the stateless app tier instead.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ollama
+        app.kubernetes.io/component: llm
+    spec:
+      # --- GPU (optional, recommended) --------------------------------------
+      # Create a GPU node pool, then uncomment the nodeSelector + the
+      # nvidia.com/gpu resource request below for much faster inference:
+      #   gcloud container node-pools create gpu-pool \
+      #     --cluster crediscout --machine-type n1-standard-4 \
+      #     --accelerator type=nvidia-tesla-t4,count=1 \
+      #     --num-nodes 1 --enable-autoscaling --min-nodes 0 --max-nodes 2
+      # nodeSelector:
+      #   cloud.google.com/gke-accelerator: nvidia-tesla-t4
+      # ----------------------------------------------------------------------
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: ollama
+          image: ollama/ollama:0.5.7
+          ports:
+            - name: http
+              containerPort: 11434
+          env:
+            - name: OLLAMA_HOST
+              value: "0.0.0.0:11434"
+            - name: OLLAMA_KEEP_ALIVE
+              value: "24h"
+          # Run the server as the main process and warm the model cache inline.
+          # (A postStart lifecycle hook can exceed the kubelet timeout while
+          # pulling multi-GB models and crash-loop the pod; doing it here keeps
+          # the pull off the critical hook path. Models persist on the PVC, so
+          # subsequent restarts skip the download.)
+          command:
+            - /bin/sh
+            - -c
+            - |
+              /bin/ollama serve &
+              pid=$!
+              until ollama list >/dev/null 2>&1; do sleep 2; done
+              ollama pull nomic-embed-text
+              ollama pull llama3.2
+              wait "$pid"
+          readinessProbe:
+            exec:
+              # Not Ready until the chat model is actually present, so the app
+              # never routes queries to an un-warmed Ollama.
+              command:
+                - /bin/sh
+                - -c
+                - "ollama list | grep -q llama3.2"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "1"
+              memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
+              # Uncomment together with the GPU nodeSelector above:
+              # nvidia.com/gpu: "1"
+          volumeMounts:
+            - name: models
+              mountPath: /root/.ollama
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: ollama-models

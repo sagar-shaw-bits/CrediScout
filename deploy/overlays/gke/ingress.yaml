@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: crediscout
+  namespace: crediscout
+  labels:
+    app.kubernetes.io/name: crediscout
+  annotations:
+    # External HTTP(S) Load Balancer via the GKE Ingress controller.
+    kubernetes.io/ingress.class: "gce"
+    # --- Optional: stable IP -------------------------------------------------
+    # Reserve a global static IP and reference it so the LB address is durable:
+    #   gcloud compute addresses create crediscout-ip --global
+    # kubernetes.io/ingress.global-static-ip-name: "crediscout-ip"
+    # --- Optional: Google-managed TLS (requires a domain -> the static IP) ---
+    #   Apply managed-certificate.yaml (see this folder) and uncomment:
+    # networking.gke.io/managed-certificates: "crediscout-cert"
+spec:
+  defaultBackend:
+    service:
+      name: crediscout
+      port:
+        number: 80

@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crediscout-server
+  namespace: crediscout
+  labels:
+    app.kubernetes.io/name: crediscout
+    app.kubernetes.io/component: server
+spec:
+  # Stateless and read-only at request time -> safe to scale horizontally.
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: crediscout
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: crediscout
+        app.kubernetes.io/component: server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        # Copy the pre-built vector index out of the immutable data image into a
+        # shared volume the app can read. Keeps the app image tiny and stateless.
+        # Image name/tag are set per environment by each overlay (images:).
+        - name: fetch-index
+          image: crediscout/index:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c", "cp /index/index.jsonl /data/index.jsonl"]
+          volumeMounts:
+            - name: index
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+      containers:
+        - name: server
+          # Image name/tag are set per environment by each overlay (images:).
+          image: crediscout/app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: crediscout-config
+          # Readiness gates traffic until the ~247 MB index finishes loading
+          # (~8 s). Without this, a cold pod would receive requests and fail.
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: index
+              mountPath: /data
+              readOnly: true
+      volumes:
+        - name: index
+          emptyDir:
+            sizeLimit: 512Mi

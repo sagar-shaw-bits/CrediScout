@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crediscout-config
+  namespace: crediscout
+  labels:
+    app.kubernetes.io/name: crediscout
+    app.kubernetes.io/component: server
+data:
+  SERVER_ADDR: ":8080"
+  INDEX_FILE: "/data/index.jsonl"
+  # Default assumes an in-cluster Ollama Service named "ollama" (see the gke
+  # overlay). The local overlay patches this to the Docker Desktop host gateway.
+  OLLAMA_URL: "http://ollama:11434"
+  EMBED_MODEL: "nomic-embed-text"
+  CHAT_MODEL: "llama3.2"
+  TOP_K: "5"

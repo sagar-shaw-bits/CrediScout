@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: crediscout
+
+resources:
+  - ../../base
+
+images:
+  - name: crediscout/app
+    newTag: local
+  - name: crediscout/index
+    newTag: local
+
+patches:
+  - path: patch-pullpolicy.yaml
+  - path: patch-ollama-url.yaml

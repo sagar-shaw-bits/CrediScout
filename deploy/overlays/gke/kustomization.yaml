@@ -1,0 +1,40 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# GKE overlay — full cloud deployment:
+#   * app + index images pulled from Artifact Registry (set your values below).
+#   * Ollama runs IN-CLUSTER (Deployment + PVC + Service); the app reaches it at
+#     http://ollama:11434 (the base ConfigMap default, so no URL patch needed).
+#   * External access via a GKE Ingress (HTTP[S] Load Balancer) using
+#     container-native load balancing (NEG) and a /healthz BackendConfig check.
+namespace: crediscout
+
+resources:
+  - ../../base
+  - ollama-pvc.yaml
+  - ollama-deployment.yaml
+  - ollama-service.yaml
+  - backendconfig.yaml
+  - ingress.yaml
+  # - managed-certificate.yaml   # enable for Google-managed TLS (needs a domain)
+
+# Replace REGION and PROJECT_ID, and pin an immutable tag per release.
+#   REGION      e.g. us-central1
+#   PROJECT_ID  your GCP project
+# Push with:
+#   docker build -t REGION-docker.pkg.dev/PROJECT_ID/crediscout/app:v1 .
+#   docker build -f Dockerfile.data \
+#     -t REGION-docker.pkg.dev/PROJECT_ID/crediscout/index:v1 .
+#   docker push REGION-docker.pkg.dev/PROJECT_ID/crediscout/app:v1
+#   docker push REGION-docker.pkg.dev/PROJECT_ID/crediscout/index:v1
+images:
+  - name: crediscout/app
+    newName: REGION-docker.pkg.dev/PROJECT_ID/crediscout/app
+    newTag: v1
+  - name: crediscout/index
+    newName: REGION-docker.pkg.dev/PROJECT_ID/crediscout/index
+    newTag: v1
+
+patches:
+  # Attach NEG + BackendConfig annotations to the app Service.
+  - path: patch-service.yaml

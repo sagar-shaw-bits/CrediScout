@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crediscout-server
+  namespace: crediscout
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: fetch-index
+          imagePullPolicy: Never
+      containers:
+        - name: server
+          imagePullPolicy: Never
