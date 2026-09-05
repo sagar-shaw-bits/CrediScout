@@ -1,8 +1,18 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"time"
+)
+
+var (
+	ErrCrawlerNoSeeds     = errors.New("At least one seed URL is required")
+	ErrCrawlerMaxPages    = errors.New("Max pages must be positive")
+	ErrCrawlerMaxDepth    = errors.New("Max depth cannot be negative")
+	ErrCrawlerConcurrency = errors.New("Concurrency must be positive")
+	ErrCrawlerMaxRetries  = errors.New("Max retries cannot be negative")
+	ErrCrawlerOutputFile  = errors.New("Output file is required")
 )
 
 type CrawlerConfig struct {
@@ -47,22 +57,22 @@ func DefaultCrawlerConfig() CrawlerConfig {
 
 func (c CrawlerConfig) Validate() error {
 	if len(c.Seeds) == 0 {
-		return fmt.Errorf("At least one seed URL is required")
+		return ErrCrawlerNoSeeds
 	}
 	if c.MaxPages <= 0 {
-		return fmt.Errorf("Max pages must be positive, got %d", c.MaxPages)
+		return fmt.Errorf("%w, got %d", ErrCrawlerMaxPages, c.MaxPages)
 	}
 	if c.MaxDepth < 0 {
-		return fmt.Errorf("Max depth cannot be negative, got %d", c.MaxDepth)
+		return fmt.Errorf("%w, got %d", ErrCrawlerMaxDepth, c.MaxDepth)
 	}
 	if c.Concurrency <= 0 {
-		return fmt.Errorf("Concurrency must be positive, got %d", c.Concurrency)
+		return fmt.Errorf("%w, got %d", ErrCrawlerConcurrency, c.Concurrency)
 	}
 	if c.MaxRetries < 0 {
-		return fmt.Errorf("Max retries cannot be negative, got %d", c.MaxRetries)
+		return fmt.Errorf("%w, got %d", ErrCrawlerMaxRetries, c.MaxRetries)
 	}
 	if c.OutputFile == "" {
-		return fmt.Errorf("Output file is required")
+		return ErrCrawlerOutputFile
 	}
 	return nil
 }

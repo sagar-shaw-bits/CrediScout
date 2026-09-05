@@ -256,29 +256,3 @@ kubectl -n crediscout port-forward svc/crediscout 8080:80
 ```powershell
 kind delete cluster --name crediscout
 ```
-
-# Future enhancements
-
-The current design favours simplicity and zero external dependencies; these are
-the natural next steps to take it further towards production scale.
-
-### Managed vector database instead of an in-process index
-
-Today the vector index is a JSONL file loaded fully into memory, and search is a
-brute-force cosine scan over every chunk. This is fast and dependency-free at the
-current corpus size, but it scans linearly and every pod holds the whole index in
-RAM. Because storage sits behind the `Store` / `VectorStore` abstraction, it can
-be swapped for a dedicated **vector database** (e.g. **pgvector**, **Qdrant**,
-**Milvus**, or **Vertex AI Vector Search** on GKE) with **approximate nearest
-neighbour (ANN/HNSW)** indexing. That gives sub-linear search, larger-than-RAM
-corpora, and index updates without redeploying — while the retrieval interface
-and the rest of the app stay unchanged.
-
-### Streaming responses
-
-The server currently returns the **complete answer in a single JSON response**
-only after the LLM has finished generating. A future version can **stream tokens**
-as they are produced (Ollama already exposes a streaming API) over
-**Server-Sent Events (SSE)** or a chunked/WebSocket response, so the UI renders
-the answer incrementally. This lowers perceived latency for long answers; the
-final source-URL list would be sent as a terminal event once generation ends.

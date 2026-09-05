@@ -1,9 +1,20 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"time"
+)
+
+var (
+	ErrRAGInputFile    = errors.New("Input file is required")
+	ErrRAGIndexFile    = errors.New("Index file is required")
+	ErrRAGOllamaURL    = errors.New("Ollama URL is required")
+	ErrRAGEmbedModel   = errors.New("Embed model is required")
+	ErrRAGChunkSize    = errors.New("Chunk size must be positive")
+	ErrRAGChunkOverlap = errors.New("Chunk overlap must be in [0, chunkSize)")
+	ErrRAGBatchSize    = errors.New("Batch size must be positive")
 )
 
 type RAGConfig struct {
@@ -32,25 +43,25 @@ func DefaultRAGConfig() RAGConfig {
 
 func (c RAGConfig) Validate() error {
 	if c.InputFile == "" {
-		return fmt.Errorf("Input file is required")
+		return ErrRAGInputFile
 	}
 	if c.IndexFile == "" {
-		return fmt.Errorf("Index file is required")
+		return ErrRAGIndexFile
 	}
 	if c.OllamaURL == "" {
-		return fmt.Errorf("Ollama URL is required")
+		return ErrRAGOllamaURL
 	}
 	if c.EmbedModel == "" {
-		return fmt.Errorf("Embed model is required")
+		return ErrRAGEmbedModel
 	}
 	if c.ChunkSize <= 0 {
-		return fmt.Errorf("Chunk size must be positive, got %d", c.ChunkSize)
+		return fmt.Errorf("%w, got %d", ErrRAGChunkSize, c.ChunkSize)
 	}
 	if c.ChunkOverlap < 0 || c.ChunkOverlap >= c.ChunkSize {
-		return fmt.Errorf("Chunk overlap must be in [0, chunkSize), got %d", c.ChunkOverlap)
+		return fmt.Errorf("%w, got %d", ErrRAGChunkOverlap, c.ChunkOverlap)
 	}
 	if c.BatchSize <= 0 {
-		return fmt.Errorf("Batch size must be positive, got %d", c.BatchSize)
+		return fmt.Errorf("%w, got %d", ErrRAGBatchSize, c.BatchSize)
 	}
 	return nil
 }

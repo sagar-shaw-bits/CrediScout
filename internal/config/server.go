@@ -1,11 +1,21 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"strconv"
 	"time"
+)
+
+var (
+	ErrServerAddr       = errors.New("Server address is required")
+	ErrServerIndexFile  = errors.New("Index file is required")
+	ErrServerOllamaURL  = errors.New("Ollama URL is required")
+	ErrServerEmbedModel = errors.New("Embed model is required")
+	ErrServerChatModel  = errors.New("Chat model is required")
+	ErrServerTopK       = errors.New("Top-k must be positive")
 )
 
 type ServerConfig struct {
@@ -32,22 +42,22 @@ func DefaultServerConfig() ServerConfig {
 
 func (c ServerConfig) Validate() error {
 	if c.Addr == "" {
-		return fmt.Errorf("config: server address is required")
+		return ErrServerAddr
 	}
 	if c.IndexFile == "" {
-		return fmt.Errorf("config: index file is required")
+		return ErrServerIndexFile
 	}
 	if c.OllamaURL == "" {
-		return fmt.Errorf("config: ollama URL is required")
+		return ErrServerOllamaURL
 	}
 	if c.EmbedModel == "" {
-		return fmt.Errorf("config: embed model is required")
+		return ErrServerEmbedModel
 	}
 	if c.ChatModel == "" {
-		return fmt.Errorf("config: chat model is required")
+		return ErrServerChatModel
 	}
 	if c.TopK <= 0 {
-		return fmt.Errorf("config: top-k must be positive, got %d", c.TopK)
+		return fmt.Errorf("%w, got %d", ErrServerTopK, c.TopK)
 	}
 	return nil
 }
