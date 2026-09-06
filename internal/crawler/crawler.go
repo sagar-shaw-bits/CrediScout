@@ -144,7 +144,7 @@ func (c *Crawler) Run(ctx context.Context) (Stats, error) {
 			return
 		}
 
-		hash := contentHash(content)
+		hash := hashString(content)
 		if c.seenContentBefore(hash) {
 			c.log.Debug("skipping duplicate content", "url", e.Request.URL.String())
 			return
@@ -158,7 +158,7 @@ func (c *Crawler) Run(ctx context.Context) (Stats, error) {
 
 		rawURL := e.Request.URL.String()
 		doc := domain.Document{
-			ID:    idForURL(rawURL),
+			ID:    hashString(rawURL),
 			URL:   rawURL,
 			Title: strings.TrimSpace(e.ChildText("title")),
 			Text:  content,
@@ -305,12 +305,7 @@ func ctxAttempt(ctx *colly.Context) int {
 	return 0
 }
 
-func contentHash(text string) string {
-	sum := sha256.Sum256([]byte(text))
-	return hex.EncodeToString(sum[:])
-}
-
-func idForURL(rawURL string) string {
-	sum := sha256.Sum256([]byte(rawURL))
+func hashString(input string) string {
+	sum := sha256.Sum256([]byte(input))
 	return hex.EncodeToString(sum[:])
 }

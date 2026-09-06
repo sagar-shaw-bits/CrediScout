@@ -82,7 +82,7 @@ func (s *VectorStore) Save(path string) error {
 	if err != nil {
 		return fmt.Errorf("vectorstore: create file: %w", err)
 	}
-	defer func() { _ = f.Close() }()
+	defer f.Close()
 
 	w := bufio.NewWriter(f)
 	enc := json.NewEncoder(w)
@@ -105,7 +105,7 @@ func LoadVectorStore(path string) (*VectorStore, error) {
 	if err != nil {
 		return nil, fmt.Errorf("vectorstore: open index: %w", err)
 	}
-	defer func() { _ = f.Close() }()
+	defer f.Close()
 
 	store := NewVectorStore()
 	r := bufio.NewReader(f)

@@ -69,7 +69,7 @@ func (o *OllamaLLM) Generate(ctx context.Context, systemPrompt, userPrompt strin
 	if err != nil {
 		return "", fmt.Errorf("ollama llm call: %w", err)
 	}
-	defer func() { _ = resp.Body.Close() }()
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("ollama llm returned status %d", resp.StatusCode)

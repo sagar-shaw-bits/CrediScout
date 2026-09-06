@@ -75,7 +75,8 @@ func readDocuments(path string) ([]domain.Document, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = f.Close() }()
+
+	defer f.Close()
 
 	var docs []domain.Document
 	r := bufio.NewReader(f)
