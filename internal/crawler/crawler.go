@@ -101,11 +101,15 @@ func (c *Crawler) Run(ctx context.Context) (Stats, error) {
 	col.SetRequestTimeout(c.cfg.RequestTimeout)
 	extensions.RandomUserAgent(col)
 
-	_ = col.Limit(&colly.LimitRule{
+	err := col.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: c.cfg.Concurrency,
 		Delay:       c.cfg.PolitenessDelay,
 	})
+
+	if err != nil {
+		return Stats{}, err
+	}
 
 	go func() {
 		<-ctx.Done()
